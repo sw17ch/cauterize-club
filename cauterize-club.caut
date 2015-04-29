@@ -2,6 +2,9 @@
   ;; Message that starts a new timeline. Does not come after any message.
   (record begin
     (fields
+      ;; The hash representing the origin of this timeline.
+      (field hash hash)
+
       ;; The participant starting this timeline.
       (field origin participant)
 
