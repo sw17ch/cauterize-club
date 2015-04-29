@@ -1,22 +1,40 @@
 (schema cauterize_club 0.0.1.0
+
+  ;; Top level message type.
+  (record message
+    (fields
+      ;; The hash of this message
+      (field hash hash)
+
+      ;; Where did this message originate from?
+      (field origin participant)
+
+      ;; The timestamp of this message. Should be nanoseconds since January 1, 1970.
+      (field timestamp u64)
+
+      ;; The message data.
+      (field packet packet)))
+
+
+  ;; Messages are one of thee possible types.
+  (union packet
+    (fields
+      (field beginning beginning)
+      (field joiner joiner)
+      (field content content)))
+
+
   ;; Message that starts a new timeline. Does not come after any message.
   (record beginning
     (fields
-      ;; The hash representing the origin of this timeline.
-      (field hash hash)
-
-      ;; The participant starting this timeline.
-      (field origin participant)
-
       ;; The name of this timeline.
-      (field name)))
+      (field name name)))
 
   ;; Makes a reference hash to two separate messages. Mark two messages as
   ;; predecessors. This allows a participant with access to divergent timelines to
   ;; merge the timelines.
   (record joiner
     (fields
-
       ;; The first predecessor.
       (field first hash)
 
@@ -24,19 +42,14 @@
       (field second hash)))
 
   ;; Message content in the timeline.
-  (record message
+  (record content
     (fields
-      ;; Hash of all entropy in the message.
-      (field hash hash)
-
       ;; This message comes after this message in the timeline.
-      (field after hash)
-
-      ;; Where did this message originate from?
-      (field origin participant)
+      (field predecessor hash)
 
       ;; Actual content of the message.
       (field payload payload)))
+
 
   ;; Participants are the originators of messages.
   (record participant
@@ -47,15 +60,6 @@
       ;; The participant's key fingerprint.
       (field fingerprint fingerprint)))
 
-  ;; Names are up to 512 bytes. Should be encoded as UTF8.
-  (vector name u8 512)
-
-  ;; Fingerprints are up to 1024 bytes long. Common fingerprints use 32 or 64
-  ;; bytes. This allows for further expansion.
-  (vector fingerprint u8 1024)
-
-  ;; The payload is up to 16K. The data is arbitrary.
-  (vector payload u8 16384)
 
   ;; Components of a cryptographic hash.
   (record hash
@@ -67,4 +71,15 @@
   (array salt u8 20)
 
   ;; Sha1 hashes are used as message identifiers.
-  (array sha1hash u8 20))
+  (array sha1hash u8 20)
+
+
+  ;; Names are up to 512 bytes. Should be encoded as UTF8.
+  (vector name u8 512)
+
+  ;; Fingerprints are up to 1024 bytes long. Common fingerprints use 32 or 64
+  ;; bytes. This allows for further expansion.
+  (vector fingerprint u8 1024)
+
+  ;; The payload is up to 16K. The data is arbitrary.
+  (vector payload u8 16384))
