@@ -1,7 +1,34 @@
 (schema cauterize_club 0.0.1.0
-  ;; Top level message.
+  ;; Message that starts a new timeline. Does not come after any message.
+  (record begin
+    (fields
+      ;; The participant starting this timeline.
+      (field origin participant)
+
+      ;; The name of this timeline.
+      (field name)))
+
+  ;; Makes a reference hash to two separate messages. Mark two messages as
+  ;; predecessors. This allows a participant with access to divergent timelines to
+  ;; merge the timelines.
+  (record join
+    (fields
+
+      ;; The first predecessor.
+      (field first hash)
+
+      ;; The second predecessor.
+      (field second hash)))
+
+  ;; Message content in the timeline.
   (record message
     (fields
+      ;; Hash of all entropy in the message.
+      (field hash hash)
+
+      ;; This message comes after this message in the timeline.
+      (field after hash)
+
       ;; Where did this message originate from?
       (field origin participant)
 
@@ -20,9 +47,21 @@
   ;; Names are up to 512 bytes. Should be encoded as UTF8.
   (vector name u8 512)
 
-  ;; Fingerprints are up to 1024 bytes long. Common fingreprints use 32 or 64
+  ;; Fingerprints are up to 1024 bytes long. Common fingerprints use 32 or 64
   ;; bytes. This allows for further expansion.
   (vector fingerprint u8 1024)
 
   ;; The payload is up to 16K. The data is arbitrary.
-  (vector payload u8 16384))
+  (vector payload u8 16384)
+
+  ;; Components of a cryptographic hash.
+  (record hash
+    (fields
+      (field salt salt)
+      (field value sha1hash)))
+
+  ;; A salt value for use with sha1 hashes.
+  (array salt u8 20)
+
+  ;; Sha1 hashes are used as message identifiers.
+  (array sha1hash u8 20))
