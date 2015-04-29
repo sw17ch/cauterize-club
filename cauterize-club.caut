@@ -1,6 +1,6 @@
 (schema cauterize_club 0.0.1.0
   ;; Message that starts a new timeline. Does not come after any message.
-  (record begin
+  (record beginning
     (fields
       ;; The hash representing the origin of this timeline.
       (field hash hash)
@@ -14,7 +14,7 @@
   ;; Makes a reference hash to two separate messages. Mark two messages as
   ;; predecessors. This allows a participant with access to divergent timelines to
   ;; merge the timelines.
-  (record join
+  (record joiner
     (fields
 
       ;; The first predecessor.
