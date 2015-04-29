@@ -1,0 +1,28 @@
+(schema cauterize_club 0.0.1.0
+  ;; Top level message.
+  (record message
+    (fields
+      ;; Where did this message originate from?
+      (field origin participant)
+
+      ;; Actual content of the message.
+      (field payload payload)))
+
+  ;; Participants are the originators of messages.
+  (record participant
+    (fields
+      ;; The name of the participant.
+      (field name name)
+
+      ;; The participant's key fingerprint.
+      (field fingerprint fingerprint)))
+
+  ;; Names are up to 512 bytes. Should be encoded as UTF8.
+  (vector name u8 512)
+
+  ;; Fingerprints are up to 1024 bytes long. Common fingreprints use 32 or 64
+  ;; bytes. This allows for further expansion.
+  (vector fingerprint u8 1024)
+
+  ;; The payload is up to 16K. The data is arbitrary.
+  (vector payload u8 16384))
