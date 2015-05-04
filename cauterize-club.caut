@@ -1,18 +1,25 @@
 (schema cauterize_club 0.0.1.0
 
-  ;; Top level message type.
-  (record message
+  ;; Top level control message.
+  (union control
     (fields
-      ;; The hash of this message
+      (field emit entry)
+      (field request hash)
+      (field peers peer_list)))
+
+  ;; Top level entry type. Time lines are made out of entries.
+  (record entry
+    (fields
+      ;; The hash of this entry
       (field hash hash)
 
-      ;; Where did this message originate from?
+      ;; Where did this entry originate from?
       (field origin participant)
 
-      ;; The timestamp of this message. Should be nanoseconds since January 1, 1970.
+      ;; The time stamp of this entry. Should be nanoseconds since January 1, 1970.
       (field timestamp u64)
 
-      ;; The message data.
+      ;; The entry data.
       (field packet packet)))
 
 
@@ -24,15 +31,15 @@
       (field content content)))
 
 
-  ;; Message that starts a new timeline. Does not come after any message.
+  ;; Entry that starts a new timeline. Does not come after any entry.
   (record beginning
     (fields
       ;; The name of this timeline.
       (field name name)))
 
-  ;; Makes a reference hash to two separate messages. Mark two messages as
-  ;; predecessors. This allows a participant with access to divergent timelines to
-  ;; merge the timelines.
+  ;; Makes a reference hash to two separate entries. Mark two entries as
+  ;; predecessors. This allows a participant with access to divergent time lines to
+  ;; merge the time lines.
   (record joiner
     (fields
       ;; The first predecessor.
@@ -44,14 +51,14 @@
   ;; Message content in the timeline.
   (record content
     (fields
-      ;; This message comes after this message in the timeline.
+      ;; Entry preceding this entry.
       (field predecessor hash)
 
-      ;; Actual content of the message.
+      ;; Actual content of the entry.
       (field payload payload)))
 
 
-  ;; Participants are the originators of messages.
+  ;; Participants are the originators of entries.
   (record participant
     (fields
       ;; The name of the participant.
@@ -67,15 +74,29 @@
       (field salt salt)
       (field value sha1hash)))
 
-  ;; A salt value for use with sha1 hashes.
+  ;; Peer
+  (record peer
+    (fields
+      (field name name)
+      (field address address)))
+
+  ;; A list of peers
+  (vector peer_list peer 64)
+
+  ;; A salt value for use with entry hashes.
   (array salt u8 20)
 
-  ;; Sha1 hashes are used as message identifiers.
+  ;; SHA1 hashes are used as entry identifiers.
   (array sha1hash u8 20)
 
 
   ;; Names are up to 512 bytes. Should be encoded as UTF8.
   (vector name u8 512)
+
+  ;; Addresses are up to 512 bytes. Supported address schemes are below:
+  ;;
+  ;;  - tcp = tcp:[hostname]:port
+  (vector address u8 512)
 
   ;; Fingerprints are up to 1024 bytes long. Common fingerprints use 32 or 64
   ;; bytes. This allows for further expansion.

@@ -5,10 +5,18 @@ CAUT_HFILES=$(CAUT_DIR)/cauterize.h $(CAUT_DIR)/cauterize_club.h
 CAUT_CFILES=$(CAUT_DIR)/cauterize.c $(CAUT_DIR)/cauterize_club.c
 CAUT_FILES=$(CAUT_HFILES) $(CAUT_CFILES)
 
+HFILES=$(CAUT_HFILES) \
+			 options.h \
+			 list.h
+CFILES=$(CAUT_CFILES) \
+			 main.c \
+			 options.c \
+			 list.c
+
 CC=clang
-CARGS=-Wall -Wextra --std=c11 -pedantic
-INCLUDE=-I$(CAUT_DIR)
-CFILES=$(CAUT_CFILES) main.c
+CARGS=-Wall -Wextra --std=c11 -pedantic -O3
+INCLUDE=-I$(CAUT_DIR) \
+				-Ivendor/socket99
 
 default: $(PROG)
 
@@ -21,7 +29,7 @@ $(CAUT_FILES): cauterize-club.cautspec
 	./bin/caut-c11-ref --spec=$< --output=caut
 
 cauterize-club.cautspec: cauterize-club.caut
-	./bin/cauterize --schema=$< > $@
+	./bin/cauterize --schema=$< --output=$@
 
-$(PROG): $(CFILES)
-	$(CC) $(CARGS) $(INCLUDE) $^ -o $(PROG)
+$(PROG): $(CFILES) $(HFILES)
+	$(CC) $(CARGS) $(INCLUDE) $(CFILES) -o $(PROG)

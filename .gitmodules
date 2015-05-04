@@ -1,0 +1,3 @@
+[submodule "vendor/socket99"]
+	path = vendor/socket99
+	url = git@github.com:silentbicycle/socket99.git
