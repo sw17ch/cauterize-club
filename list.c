@@ -32,7 +32,7 @@ size_t list_length(struct list_node * head) {
   return length;
 }
 
-struct list_node * list_cons(void * data, struct list_node * tail) {
+struct list_node * list_prepend(void * data, struct list_node * tail) {
   assert(data);
 
   struct list_node * n = malloc(sizeof(*n));
