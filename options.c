@@ -7,22 +7,19 @@
 #include <unistd.h>
 #include <assert.h>
 
-enum option_parse_status option_parse(int argc, char * argv[], struct options ** options) {
+enum option_parse_status option_parse(int argc, char * argv[], struct options * options) {
   assert(options);
 
   enum option_parse_status status = option_parse_ok;
   int c;
 
-  struct list_node * peer_str_head = calloc(1, sizeof(*peer_str_head));
-  list_node_init(peer_str_head);
+  struct list_node * peer_str_head = NULL;
 
-  *options = calloc(1, sizeof(*options));
   opterr = 0;
-
-  while( (c = getopt(argc, argv, "f:p:")) != -1) {
+  while( (c = getopt(argc, argv, "n:p:")) != -1) {
     switch (c) {
-    case 'f':
-      fprintf(stderr, "FILE %s\n", optarg);
+    case 'n':
+      options->name = optarg;
       break;
     case 'p':
       peer_str_head = list_cons(optarg, peer_str_head);
@@ -34,37 +31,40 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options **
     }
   }
 
+  peer_str_head = list_reverse(peer_str_head);
+
   if (status == option_parse_ok) {
     size_t peer_count = list_length(peer_str_head);
+    printf("Peer Count: %lu\n", peer_count);
 
-    (*options)->peers.count = peer_count;
-    (*options)->peers.peers = calloc(peer_count, sizeof((*options)->peers.peers[0]));
+    options->peer_set.count = peer_count;
+    options->peer_set.peers = calloc(peer_count, sizeof(options->peer_set.peers[0]));
 
     size_t peer_ix = 0;
     struct list_node * cur = peer_str_head;
-    while (NULL != cur->tail){
-      struct address * a = &(*options)->peers.peers[peer_ix].address;
+    while (NULL != cur) {
+      struct address * a = &(options->peer_set.peers[peer_ix].address);
       size_t alen = strlen((char*)cur->data);
 
       strncpy(
-          (char*)&a->elems,
-          (char*)cur->data,
-          sizeof(a->elems));
+          (char *)a->elems,
+          cur->data,
+          sizeof(a->elems)-1);
       a->_length = alen;
 
+      peer_ix += 1;
       cur = cur->tail;
     }
   }
 
-  peer_str_head = list_reverse(peer_str_head);
   list_free(peer_str_head, NULL);
   return status;
 }
 
 void options_free(struct options * options) {
   if (NULL != options) {
-    if(NULL != options->peers.peers) {
-      free(options->peers.peers);
+    if(NULL != options->peer_set.peers) {
+      free(options->peer_set.peers);
     }
     free(options);
   }

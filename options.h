@@ -9,7 +9,8 @@ struct peer_set {
 };
 
 struct options {
-  struct peer_set peers;
+  char * name;
+  struct peer_set peer_set;
 };
 
 enum option_parse_status {
@@ -17,7 +18,7 @@ enum option_parse_status {
   option_parse_err,
 };
 
-enum option_parse_status option_parse(int argc, char * argv[], struct options ** options);
+enum option_parse_status option_parse(int argc, char * argv[], struct options * options);
 void options_free(struct options * options);
 
 #endif /* OPTIONS_H */
