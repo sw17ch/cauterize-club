@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-static bool node_is_nil(struct list_node * node);
-
 void list_free(struct list_node * const node, list_free_cb * cb) {
   assert(node);
 
