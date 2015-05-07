@@ -22,7 +22,7 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options * 
       options->name = optarg;
       break;
     case 'p':
-      peer_str_head = list_cons(optarg, peer_str_head);
+      peer_str_head = list_prepend(optarg, peer_str_head);
       break;
     default:
       fprintf(stderr, "Unknown option: %c\n", optopt);
