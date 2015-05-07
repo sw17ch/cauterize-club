@@ -74,14 +74,8 @@
       (field salt salt)
       (field value sha1hash)))
 
-  ;; Peer
-  (record peer
-    (fields
-      (field name name)
-      (field address address)))
-
   ;; A list of peers
-  (vector peer_list peer 64)
+  (vector peer_list address 64)
 
   ;; A salt value for use with entry hashes.
   (array salt u8 20)
