@@ -5,7 +5,7 @@
 
 struct peer_set {
   size_t count;
-  struct peer * peers;
+  struct address * addresses;
 };
 
 struct options {

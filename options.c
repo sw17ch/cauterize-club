@@ -38,12 +38,12 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options * 
     printf("Peer Count: %lu\n", peer_count);
 
     options->peer_set.count = peer_count;
-    options->peer_set.peers = calloc(peer_count, sizeof(options->peer_set.peers[0]));
+    options->peer_set.addresses = calloc(peer_count, sizeof(options->peer_set.addresses[0]));
 
     size_t peer_ix = 0;
     struct list_node * cur = peer_str_head;
     while (NULL != cur) {
-      struct address * a = &(options->peer_set.peers[peer_ix].address);
+      struct address * a = &(options->peer_set.addresses[peer_ix]);
       size_t alen = strlen((char*)cur->data);
 
       strncpy(
@@ -63,8 +63,8 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options * 
 
 void options_free(struct options * options) {
   if (NULL != options) {
-    if(NULL != options->peer_set.peers) {
-      free(options->peer_set.peers);
+    if(NULL != options->peer_set.addresses) {
+      free(options->peer_set.addresses);
     }
     free(options);
   }
