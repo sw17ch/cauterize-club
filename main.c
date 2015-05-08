@@ -3,7 +3,7 @@
 #include <nanomsg/nn.h>
 #include <nanomsg/reqrep.h>
 
-#include "transport.h"
+#include "network.h"
 #include "options.h"
 
 int main(int argc, char * argv[]) {

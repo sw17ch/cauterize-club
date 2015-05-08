@@ -1,5 +1,5 @@
-#ifndef TRANSPORT_H
-#define TRANSPORT_H
+#ifndef NETWORK_H
+#define NETWORK_H
 
 #include "caut/cauterize_club.h"
 
@@ -10,4 +10,4 @@ struct header {
 
 
 
-#endif /* TRANSPORT_H */
+#endif /* NETWORK_H */
