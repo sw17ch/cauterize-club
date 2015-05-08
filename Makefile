@@ -7,11 +7,13 @@ CAUT_FILES=$(CAUT_HFILES) $(CAUT_CFILES)
 
 HFILES=$(CAUT_HFILES) \
 			 options.h \
-			 list.h
+			 list.h \
+			 app.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
 			 options.c \
-			 list.c
+			 list.c \
+			 app.c
 
 CC=clang
 CARGS=-Wall -Wextra --std=c11 -pedantic -O3
