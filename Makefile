@@ -9,16 +9,19 @@ HFILES=$(CAUT_HFILES) \
 			 options.h \
 			 list.h \
 			 app.h \
-			 datafile.h
+			 datafile.h \
+			 hashing.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
 			 options.c \
 			 list.c \
 			 app.c \
-			 datafile.c
+			 datafile.c \
+			 hashing.c
 
 CC=clang
 CARGS=-Wall -Wextra --std=c11 -pedantic -O0
+LIBS=-lgcrypt
 INCLUDE=-Ivendor/socket99
 
 default: $(PROG)
@@ -35,4 +38,4 @@ cauterize-club.cautspec: cauterize-club.caut
 	./bin/cauterize --schema=$< --output=$@
 
 $(PROG): $(CFILES) $(HFILES)
-	$(CC) $(CARGS) $(INCLUDE) $(CFILES) -o $(PROG)
+	$(CC) $(CARGS) $(INCLUDE) $(LIBS) $(CFILES) -o $(PROG)
