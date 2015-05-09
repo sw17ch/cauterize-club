@@ -8,17 +8,18 @@ CAUT_FILES=$(CAUT_HFILES) $(CAUT_CFILES)
 HFILES=$(CAUT_HFILES) \
 			 options.h \
 			 list.h \
-			 app.h
+			 app.h \
+			 datafile.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
 			 options.c \
 			 list.c \
-			 app.c
+			 app.c \
+			 datafile.c
 
 CC=clang
 CARGS=-Wall -Wextra --std=c11 -pedantic -O3
-INCLUDE=-I$(CAUT_DIR) \
-				-Ivendor/socket99
+INCLUDE=-Ivendor/socket99
 
 default: $(PROG)
 
