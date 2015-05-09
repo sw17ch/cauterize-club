@@ -1,17 +1,9 @@
 (schema cauterize_club 0.0.1.0
-
-  ;; Top level control message.
-  (union control
-    (fields
-      (field emit entry)
-      (field request hash)
-      (field peers peer_list)))
-
   ;; Top level entry type. Time lines are made out of entries.
   (record entry
     (fields
       ;; The hash of this entry
-      (field hash hash)
+      (field hash sha1hash)
 
       ;; Where did this entry originate from?
       (field origin participant)
@@ -20,11 +12,11 @@
       (field timestamp u64)
 
       ;; The entry data.
-      (field packet packet)))
+      (field body entry_body)))
 
 
   ;; Messages are one of thee possible types.
-  (union packet
+  (union entry_body
     (fields
       (field beginning beginning)
       (field joiner joiner)
@@ -43,16 +35,16 @@
   (record joiner
     (fields
       ;; The first predecessor.
-      (field first hash)
+      (field first sha1hash)
 
       ;; The second predecessor.
-      (field second hash)))
+      (field second sha1hash)))
 
   ;; Message content in the timeline.
   (record content
     (fields
       ;; Entry preceding this entry.
-      (field predecessor hash)
+      (field predecessor sha1hash)
 
       ;; Actual content of the entry.
       (field payload payload)))
@@ -62,17 +54,7 @@
   (record participant
     (fields
       ;; The name of the participant.
-      (field name name)
-
-      ;; The participant's key fingerprint.
-      (field fingerprint fingerprint)))
-
-
-  ;; Components of a cryptographic hash.
-  (record hash
-    (fields
-      (field salt salt)
-      (field value sha1hash)))
+      (field name name)))
 
   ;; A list of peers
   (vector peer_list address 64)

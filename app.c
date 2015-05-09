@@ -4,27 +4,34 @@
 
 #include <assert.h>
 
-static int work(struct peer_set * peer_set, struct record_set * record_set);
+static int work(struct peer_set * peer_set, struct timeline * timeline);
 
 int run_with_options(struct options * options) {
   assert(options);
 
-  struct record_set records;
+  struct timeline * timeline;
 
-  if (datafile_ok != load_records_from_file(options->datafile, &records)) {
+  if (datafile_ok != load_timeline_from_file(options->datafile, &timeline)) {
     return 1;
   }
 
-  int result = work(&options->peer_set, &records);
+  int result = work(&options->peer_set, timeline);
 
-  if (datafile_ok != write_records_to_file(options->datafile, &records)) {
+  if (datafile_ok != write_timeline_to_file(options->datafile, timeline)) {
     return 2;
+  }
+
+  if (datafile_ok != free_timeline(timeline)) {
+    return 3;
   }
 
   return result;
 }
 
-static int work(struct peer_set * peer_set, struct record_set * record_set) {
+static int work(struct peer_set * peer_set, struct timeline * timeline) {
+  (void)peer_set;
+  (void)timeline;
+
   printf("Working...\n");
 
   return 0;

@@ -18,7 +18,7 @@ CFILES=$(CAUT_CFILES) \
 			 datafile.c
 
 CC=clang
-CARGS=-Wall -Wextra --std=c11 -pedantic -O3
+CARGS=-Wall -Wextra --std=c11 -pedantic -O0
 INCLUDE=-Ivendor/socket99
 
 default: $(PROG)
