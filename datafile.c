@@ -1,4 +1,5 @@
 #include "datafile.h"
+#include "hashing.h"
 #include "caut/cauterize_club.h"
 
 #include <assert.h>
@@ -53,6 +54,7 @@ enum datafile_status load_timeline_from_file(const char * const path, struct tim
 
       if (read_status_ok != (stat = read_and_validate_header(datafile))) {
         fprintf(stderr, "Unable to validate datafile header: %d\n", stat);
+        return datafile_err;
       }
 
       // Header validated. Read in timeline.
@@ -123,6 +125,16 @@ static enum read_status read_and_validate_header(FILE * f) {
     return read_status_err_header_not_enough_data;
   } else {
     if (0 != memcmp(schema_hash, SCHEMA_HASH_cauterize_club, sizeof(schema_hash))) {
+      char hash_exp[HASH_HEX_STR_LEN] = { 0 };
+      char hash_act[HASH_HEX_STR_LEN] = { 0 };
+
+      hash_to_str(SCHEMA_HASH_cauterize_club, hash_exp, sizeof(hash_exp));
+      hash_to_str(schema_hash, hash_act, sizeof(hash_act));
+
+      fprintf(stderr, "Hash mismatch:\n"
+                      "  Expected: %s\n"
+                      "  Actual:   %s\n", hash_exp, hash_act);
+
       return read_status_err_header_mismatch;
     } else {
       return read_status_ok;
@@ -149,6 +161,8 @@ static enum write_status write_header(FILE * f) {
 
 static enum write_status write_entry(FILE * f, struct message_cauterize_club * m) {
   enum caut_status cstat = caut_status_ok;
+
+  // TODO: This can be the max size of the 
   void * enc_buffer = calloc(MAX_SIZE_cauterize_club, sizeof(uint8_t));
   struct caut_encode_iter enc_iter;
 

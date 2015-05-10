@@ -10,14 +10,16 @@ HFILES=$(CAUT_HFILES) \
 			 list.h \
 			 app.h \
 			 datafile.h \
-			 hashing.h
+			 hashing.h \
+			 type_utils.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
 			 options.c \
 			 list.c \
 			 app.c \
 			 datafile.c \
-			 hashing.c
+			 hashing.c \
+			 type_utils.c
 
 CC=clang
 CARGS=-Wall -Wextra --std=c11 -pedantic -O0
