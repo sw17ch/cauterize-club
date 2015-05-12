@@ -7,11 +7,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct entry_handle {
-  hashtype_t hash;
-  struct entry entry;
-};
-
 struct timeline_region {
   // Where elements for this node are stored.
   struct entry_handle * elems;
@@ -28,8 +23,9 @@ struct timeline_region {
 
 struct timeline {
   struct timeline_region * regions;
-  uint8_t * transcode_buffer;
   const char * file_path;
+  uint8_t * transcode_buffer;
+  size_t transcode_buffer_len;
 };
 
 typedef uint32_t file_len_hdr_t;

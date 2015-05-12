@@ -23,7 +23,7 @@ static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * l
 
 static bool file_writeable(const char * const path, int * const eno);
 static S write_header(FILE * f);
-static S write_entry(FILE * f, struct message_cauterize_club * m);
+static S write_entry(FILE * f, struct entry_handle * m, uint8_t * enc_buffer, size_t buff_len);
 
 static S save_timeline_to_disk(const T * const tl);
 
@@ -52,9 +52,11 @@ S timeline_init_from_file(const char * const path, T ** const tl) {
         file_len_hdr_t len_hdr = 0;
         stat = read_entry_buffer(datafile,
                                  timeline->transcode_buffer,
-                                 sizeof(timeline->transcode_buffer),
+                                 timeline->transcode_buffer_len,
                                  &len_hdr);
-        if (stat != timeline_ok) {
+        if (stat == timeline_err_eof) {
+          break;
+        } else if (stat != timeline_ok) {
           return stat;
         } else {
           struct caut_decode_iter di;
@@ -65,9 +67,12 @@ S timeline_init_from_file(const char * const path, T ** const tl) {
           caut_decode_iter_init(
               &di,
               &(timeline->transcode_buffer[sizeof(eh->hash)]),
-              len_hdr);
+              len_hdr - sizeof(eh->hash));
 
-          decode_entry(&di, &eh->entry);
+          if (caut_status_ok != decode_entry(&di, &eh->entry)) {
+            return timeline_err_unable_to_decode_entry;
+          }
+          assert(0 == caut_decode_iter_remaining(&di));
         }
       }
     }
@@ -86,6 +91,9 @@ S timeline_deinit(T * const tl) {
       if (NULL != tl->transcode_buffer) {
         free(tl->transcode_buffer);
       }
+      if (NULL != tl->regions) {
+        free_regions(tl->regions);
+      }
       free(tl);
     }
   }
@@ -96,9 +104,10 @@ S timeline_deinit(T * const tl) {
 void timeline_init(T ** tl, const char * const path) {
   T * timeline = *tl = calloc(1, sizeof(*timeline));
   memset(timeline, 0, sizeof(*timeline));
-  timeline->regions = NULL;
   timeline->transcode_buffer = malloc(MESSAGE_MAX_SIZE_cauterize_club);
+  timeline->transcode_buffer_len = MESSAGE_MAX_SIZE_cauterize_club;
   timeline->file_path = path;
+  timeline->regions = alloc_region(DEFAULT_REGION_SIZE);
 }
 
 static struct timeline_region * alloc_region(size_t size) {
@@ -162,7 +171,7 @@ static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * l
 
   if (1 != read_items) {
     if (feof(f)) {
-      return timeline_ok;
+      return timeline_err_eof;
     } else {
       return timeline_err_unable_to_read_entry_header;
     }
@@ -172,7 +181,7 @@ static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * l
     return timeline_err_reading_entry_would_overflow;
   }
 
-  read_items = fread(buff, len_hdr, 1, f);
+  read_items = fread(buff, 1, len_hdr, f);
 
   if (len_hdr != read_items) {
     return timeline_err_less_data_than_header_expects;
@@ -209,13 +218,16 @@ S save_timeline_to_disk(const T * const tl) {
   }
 
   // Header written. Write timeline.
-#if 0
-  for (size_t i = 0; i < tl->count; i++) {
-    if (write_status_ok != (wstat = write_entry(temp, &tl->entries[i]))) {
-      fprintf(stderr, "Unable to write entry: %d\n", wstat);
+  struct timeline_region * current_region = tl->regions;
+  while(current_region) {
+    for(size_t i = 0; i < current_region->used; i++) {
+      struct entry_handle * e = &current_region->elems[i];
+      if (timeline_ok != (wstat = write_entry(temp, e, tl->transcode_buffer, tl->transcode_buffer_len))) {
+        fprintf(stderr, "Unable to write entry: %d\n", wstat);
+      }
     }
+    current_region = current_region->next;
   }
-#endif
 
   fclose(temp);
 
@@ -245,32 +257,69 @@ static S write_header(FILE * f) {
   }
 }
 
-static S write_entry(FILE * f, struct message_cauterize_club * m) {
-  enum caut_status cstat = caut_status_ok;
+static S write_entry(FILE * f, struct entry_handle * eh, uint8_t * enc_buffer, size_t buff_len) {
+  struct caut_encode_iter ei;
+  enum caut_status cs;
 
-  // TODO: This can be the max size of the entry instead of message.
-  void * enc_buffer = calloc(MAX_SIZE_cauterize_club, sizeof(uint8_t));
-  struct caut_encode_iter enc_iter;
-
-  struct message_cauterize_club _m = {
-    ._type = type_index_cauterize_club_u8,
-    ._data = {
-      .msg_u8 = 'a',
-    },
-  };
-
-  caut_encode_iter_init(&enc_iter, enc_buffer, MAX_SIZE_cauterize_club);
-  if (caut_status_ok != (cstat = encode_message_cauterize_club(&enc_iter, &_m))) {
+  caut_encode_iter_init(&ei, enc_buffer, buff_len);
+  if (caut_status_ok != (cs = encode_entry(&ei, &eh->entry))) {
+    fprintf(stderr, "cauterize encoding returned %d\n", cs);
     return timeline_err_unable_to_encode_entry;
   }
 
-  size_t len = caut_encode_iter_used(&enc_iter);
+  size_t enc_len = caut_encode_iter_used(&ei);
+  file_len_hdr_t ehdr = sizeof(eh->hash) + enc_len;
 
-  if (len != fwrite(enc_buffer, sizeof(uint8_t), len, f)) {
-    return timeline_err_unable_to_write_encoded_entry;
-  } else {
-    return timeline_ok;
+  if (1 != fwrite(&ehdr, sizeof(ehdr), 1, f)) {
+    return timeline_err_unable_to_write_entry_header;
   }
+
+  if (1 != fwrite(eh->hash, sizeof(eh->hash), 1, f)) {
+    return timeline_err_unable_to_write_entry_hash;
+  }
+
+  if (enc_len != fwrite(enc_buffer, 1, enc_len, f)) {
+    return timeline_err_unable_to_write_encoded_entry;
+  }
+
+  return timeline_ok;
+}
+
+struct entry_handle * timeline_new_entry(T * const tl) {
+  assert(tl);
+
+  struct timeline_region * current_region = tl->regions;
+
+  while(true) {
+    if (current_region->used >= current_region->count) {
+      if (NULL == current_region->next) {
+        current_region->next = alloc_region(DEFAULT_REGION_SIZE);
+      }
+      current_region = current_region->next;
+    } else {
+      struct entry_handle * e = &current_region->elems[current_region->used];
+      current_region->used += 1;
+      return e;
+    }
+  }
+}
+
+const struct entry_handle * timeline_last_entry(const T * const tl) {
+  assert(tl);
+
+  struct timeline_region * current_region = tl->regions;
+
+  while(current_region) {
+    if (current_region->used >= current_region->count) {
+      current_region = current_region->next;
+    } else {
+      if (0 < current_region->used) {
+        return &current_region->elems[current_region->used - 1];
+      }
+    }
+  }
+
+  return NULL;
 }
 
 #undef S
