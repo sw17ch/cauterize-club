@@ -13,9 +13,8 @@
 
 #define DEFAULT_REGION_SIZE (8)
 
-void timeline_init(T ** tl, const char * const path);
-static struct timeline_region * alloc_region(size_t size);
-static void free_regions(struct timeline_region * r);
+static void timeline_init(T ** tl, const char * const path);
+static S timeline_save_to_disk(const T * const tl);
 
 static bool file_readable(const char * const path, int * const eno);
 static S read_and_validate_header(FILE * f);
@@ -25,7 +24,8 @@ static bool file_writeable(const char * const path, int * const eno);
 static S write_header(FILE * f);
 static S write_entry(FILE * f, struct entry_handle * m, uint8_t * enc_buffer, size_t buff_len);
 
-static S save_timeline_to_disk(const T * const tl);
+static struct timeline_region * alloc_region(size_t size);
+static void free_regions(struct timeline_region * r);
 
 S timeline_init_from_file(const char * const path, T ** const tl) {
   timeline_init(tl, path);
@@ -85,7 +85,7 @@ S timeline_init_from_file(const char * const path, T ** const tl) {
 S timeline_deinit(T * const tl) {
   if (NULL != tl) {
     S dstat;
-    if (timeline_ok != (dstat = save_timeline_to_disk(tl))) {
+    if (timeline_ok != (dstat = timeline_save_to_disk(tl))) {
       return dstat;
     } else {
       if (NULL != tl->transcode_buffer) {
@@ -101,7 +101,45 @@ S timeline_deinit(T * const tl) {
   return timeline_ok;
 }
 
-void timeline_init(T ** tl, const char * const path) {
+struct entry_handle * timeline_new_entry(T * const tl) {
+  assert(tl);
+
+  struct timeline_region * current_region = tl->regions;
+
+  while(true) {
+    if (current_region->used >= current_region->count) {
+      if (NULL == current_region->next) {
+        current_region->next = alloc_region(DEFAULT_REGION_SIZE);
+      }
+      current_region = current_region->next;
+    } else {
+      struct entry_handle * e = &current_region->elems[current_region->used];
+      current_region->used += 1;
+      return e;
+    }
+  }
+}
+
+const struct entry_handle * timeline_last_entry(const T * const tl) {
+  assert(tl);
+
+  struct timeline_region * current_region = tl->regions;
+
+  while(current_region) {
+    if (current_region->used >= current_region->count) {
+      current_region = current_region->next;
+    } else {
+      if (0 < current_region->used) {
+        return &current_region->elems[current_region->used - 1];
+      }
+    }
+  }
+
+  return NULL;
+}
+
+
+static void timeline_init(T ** tl, const char * const path) {
   T * timeline = *tl = calloc(1, sizeof(*timeline));
   memset(timeline, 0, sizeof(*timeline));
   timeline->transcode_buffer = malloc(MESSAGE_MAX_SIZE_cauterize_club);
@@ -121,7 +159,7 @@ static struct timeline_region * alloc_region(size_t size) {
   return r;
 }
 
-void free_regions(struct timeline_region * regions) {
+static void free_regions(struct timeline_region * regions) {
   struct timeline_region * r = regions;
 
   while(r) {
@@ -192,7 +230,7 @@ static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * l
   return timeline_ok;
 }
 
-S save_timeline_to_disk(const T * const tl) {
+static S timeline_save_to_disk(const T * const tl) {
   assert(tl);
   assert(tl->file_path);
 
@@ -283,43 +321,6 @@ static S write_entry(FILE * f, struct entry_handle * eh, uint8_t * enc_buffer, s
   }
 
   return timeline_ok;
-}
-
-struct entry_handle * timeline_new_entry(T * const tl) {
-  assert(tl);
-
-  struct timeline_region * current_region = tl->regions;
-
-  while(true) {
-    if (current_region->used >= current_region->count) {
-      if (NULL == current_region->next) {
-        current_region->next = alloc_region(DEFAULT_REGION_SIZE);
-      }
-      current_region = current_region->next;
-    } else {
-      struct entry_handle * e = &current_region->elems[current_region->used];
-      current_region->used += 1;
-      return e;
-    }
-  }
-}
-
-const struct entry_handle * timeline_last_entry(const T * const tl) {
-  assert(tl);
-
-  struct timeline_region * current_region = tl->regions;
-
-  while(current_region) {
-    if (current_region->used >= current_region->count) {
-      current_region = current_region->next;
-    } else {
-      if (0 < current_region->used) {
-        return &current_region->elems[current_region->used - 1];
-      }
-    }
-  }
-
-  return NULL;
 }
 
 #undef S
