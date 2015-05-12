@@ -5,6 +5,7 @@
 #include "caut/cauterize_club.h"
 
 #include <assert.h>
+#include <inttypes.h>
 
 static int work(struct peer_set * peer_set, struct timeline * timeline);
 static size_t get_user_input(void * buffer, size_t max_len);
@@ -50,7 +51,7 @@ static int work(struct peer_set * peer_set, struct timeline * timeline) {
   printf("User input: %s\n", user_buffer);
   printf("User len: %lu\n", user_len);
   printf("User hash: %s\n", hstr);
-  printf("Time: %llu\n", new_entry->entry.timestamp);
+  printf("Time: %" PRIu64 "\n", new_entry->entry.timestamp);
 
   return 0;
 }
