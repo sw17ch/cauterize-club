@@ -10,7 +10,17 @@
 
 static void print_usage(char * cmd) {
     fprintf(stderr,
-        "Usage:\n\n\t%s -n NODE_NAME -d DATA_FILE -p PEER_ADDR [-p ADDITIONAL_PEER]\n\n",
+        "Usage:\n"
+        "\n"
+        "    %s -m MODE -n NODE_NAME -d DATA_FILE [[-p PEER_ADDR]]\n"
+        "\n"
+        "MODE can be any of: [dbjc]\n"
+        "\n"
+        "  * 'd' - run as a daemon\n"
+        "  * 'b' - add a new beginner entry and send it to all peers\n"
+        "  * 'j' - add a new joiner entry and send it to all peers\n"
+        "  * 'c' - add a new content entry and send it to all peers\n"
+        "  * 'l' - list all entries stored in the local database\n",
         cmd);
 }
 
@@ -28,8 +38,11 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options **
   struct list_node * peer_str_head = NULL;
 
   opterr = 0;
-  while( (c = getopt(argc, argv, "n:p:d:")) != -1) {
+  while( (c = getopt(argc, argv, "n:p:d:m:h")) != -1) {
     switch (c) {
+    case 'h':
+      status = option_parse_err_getopt;
+      break;
     case 'n':
       options->name = optarg;
       break;
@@ -39,8 +52,29 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options **
     case 'p':
       peer_str_head = list_prepend(optarg, peer_str_head);
       break;
+    case 'm':
+      switch (optarg[0]) {
+      case 'd': options->mode = mode_daemon; break;
+      case 'b': options->mode = mode_beginner; break;
+      case 'j': options->mode = mode_joiner; break;
+      case 'c': options->mode = mode_content; break;
+      case 'l': options->mode = mode_list; break;
+      default:
+        fprintf(stderr, "Invalid mode: %c\n", optarg[0]);
+        status = option_parse_err_getopt;
+        break;
+      }
+      break;
     default:
-      fprintf(stderr, "Unknown option: %c\n", optopt);
+    case '?':
+      switch (optopt) {
+      case 'n': case 'd': case 'p': case 'm':
+        fprintf(stderr, "Option requries an argument: -%c\n", optopt);
+        status = option_parse_err_getopt;
+        break;
+      default:
+        fprintf(stderr, "Unknown option: %c\n", optopt);
+      }
       status = option_parse_err_getopt;
       break;
     }

@@ -3,6 +3,14 @@
 
 #include "caut/cauterize_club.h"
 
+enum mode {
+  mode_daemon,
+  mode_beginner,
+  mode_joiner,
+  mode_content,
+  mode_list,
+};
+
 struct peer_set {
   size_t count;
   struct address * addresses;
@@ -11,6 +19,7 @@ struct peer_set {
 struct options {
   char * name;
   char * datafile;
+  enum mode mode;
   struct peer_set peer_set;
 };
 
