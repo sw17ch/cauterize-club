@@ -13,6 +13,9 @@ enum timeline_status {
   timeline_err_unable_to_write_header,
   timeline_err_unable_to_encode_entry,
   timeline_err_unable_to_write_encoded_entry,
+  timeline_err_unable_to_read_entry_header,
+  timeline_err_reading_entry_would_overflow,
+  timeline_err_less_data_than_header_expects,
 };
 
 enum timeline_status timeline_init_from_file(

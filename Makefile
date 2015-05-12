@@ -24,7 +24,7 @@ CFILES=$(CAUT_CFILES) \
 			 $(CLUB_DIR)/timeline.c
 
 CC=clang
-CARGS=-Wall -Wextra --std=c11 -pedantic -g -O0
+CARGS=-Wall -Wextra --std=c11 -pedantic -O3
 LIBS=-lgcrypt
 INCLUDE=-Ivendor/socket99 -I.
 

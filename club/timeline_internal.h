@@ -5,6 +5,7 @@
 #include "caut/cauterize_club.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 struct entry_handle {
   hashtype_t hash;
@@ -27,9 +28,10 @@ struct timeline_region {
 
 struct timeline {
   struct timeline_region * regions;
-  void * transcode_buffer;
+  uint8_t * transcode_buffer;
   const char * file_path;
-  uint8_t filler[128];
 };
+
+typedef uint32_t file_len_hdr_t;
 
 #endif /* TIMELINE_INTERNAL_H */

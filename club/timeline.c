@@ -1,3 +1,5 @@
+#include "caut/cauterize_club.h"
+
 #include "timeline_internal.h"
 #include "hashing.h"
 
@@ -17,6 +19,7 @@ static void free_regions(struct timeline_region * r);
 
 static bool file_readable(const char * const path, int * const eno);
 static S read_and_validate_header(FILE * f);
+static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * lh);
 
 static bool file_writeable(const char * const path, int * const eno);
 static S write_header(FILE * f);
@@ -44,8 +47,29 @@ S timeline_init_from_file(const char * const path, T ** const tl) {
         return stat;
       }
 
-      // Header validated. Read in timeline.
-      // TODO: read entries
+      // Header validated. Read in timeline one entry at a time.
+      while(0 == feof(datafile)) {
+        file_len_hdr_t len_hdr = 0;
+        stat = read_entry_buffer(datafile,
+                                 timeline->transcode_buffer,
+                                 sizeof(timeline->transcode_buffer),
+                                 &len_hdr);
+        if (stat != timeline_ok) {
+          return stat;
+        } else {
+          struct caut_decode_iter di;
+          struct entry_handle * eh = timeline_new_entry(timeline);
+
+          memcpy(eh->hash, timeline->transcode_buffer, sizeof(eh->hash));
+
+          caut_decode_iter_init(
+              &di,
+              &(timeline->transcode_buffer[sizeof(eh->hash)]),
+              len_hdr);
+
+          decode_entry(&di, &eh->entry);
+        }
+      }
     }
     fclose(datafile);
   }
@@ -128,6 +152,35 @@ static S read_and_validate_header(FILE * f) {
       return timeline_ok;
     }
   }
+}
+
+static S read_entry_buffer(FILE * f, void * buff, size_t len, file_len_hdr_t * lh) {
+  size_t read_items;
+  file_len_hdr_t len_hdr = 0;
+
+  read_items = fread(&len_hdr, sizeof(len_hdr), 1, f);
+
+  if (1 != read_items) {
+    if (feof(f)) {
+      return timeline_ok;
+    } else {
+      return timeline_err_unable_to_read_entry_header;
+    }
+  }
+
+  if (len_hdr > len) {
+    return timeline_err_reading_entry_would_overflow;
+  }
+
+  read_items = fread(buff, len_hdr, 1, f);
+
+  if (len_hdr != read_items) {
+    return timeline_err_less_data_than_header_expects;
+  }
+
+  *lh = len_hdr;
+
+  return timeline_ok;
 }
 
 S save_timeline_to_disk(const T * const tl) {
