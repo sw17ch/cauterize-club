@@ -1,30 +1,31 @@
 PROG=cautclub
 CAUT_DIR=caut
+CLUB_DIR=club
 
 CAUT_HFILES=$(CAUT_DIR)/cauterize.h $(CAUT_DIR)/cauterize_club.h
 CAUT_CFILES=$(CAUT_DIR)/cauterize.c $(CAUT_DIR)/cauterize_club.c
 CAUT_FILES=$(CAUT_HFILES) $(CAUT_CFILES)
 
 HFILES=$(CAUT_HFILES) \
-			 options.h \
-			 list.h \
-			 app.h \
-			 datafile.h \
-			 hashing.h \
-			 type_utils.h
+			 $(CLUB_DIR)/options.h \
+			 $(CLUB_DIR)/list.h \
+			 $(CLUB_DIR)/app.h \
+			 $(CLUB_DIR)/datafile.h \
+			 $(CLUB_DIR)/hashing.h \
+			 $(CLUB_DIR)/type_utils.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
-			 options.c \
-			 list.c \
-			 app.c \
-			 datafile.c \
-			 hashing.c \
-			 type_utils.c
+			 $(CLUB_DIR)/options.c \
+			 $(CLUB_DIR)/list.c \
+			 $(CLUB_DIR)/app.c \
+			 $(CLUB_DIR)/datafile.c \
+			 $(CLUB_DIR)/hashing.c \
+			 $(CLUB_DIR)/type_utils.c
 
 CC=clang
 CARGS=-Wall -Wextra --std=c11 -pedantic -O0
 LIBS=-lgcrypt
-INCLUDE=-Ivendor/socket99
+INCLUDE=-Ivendor/socket99 -I.
 
 default: $(PROG)
 

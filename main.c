@@ -3,9 +3,9 @@
 #include <nanomsg/nn.h>
 #include <nanomsg/reqrep.h>
 
-#include "network.h"
-#include "options.h"
-#include "app.h"
+#include "club/network.h"
+#include "club/options.h"
+#include "club/app.h"
 
 int main(int argc, char * argv[]) {
   struct options options;
