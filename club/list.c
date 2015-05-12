@@ -4,8 +4,6 @@
 #include <stdbool.h>
 
 void list_free(struct list_node * const node, list_free_cb * cb) {
-  assert(node);
-
   struct list_node * head = node;
 
   while(head) {
@@ -19,8 +17,6 @@ void list_free(struct list_node * const node, list_free_cb * cb) {
 }
 
 size_t list_length(struct list_node * head) {
-  assert(head);
-
   struct list_node * l = head;
   size_t length = 0;
 
