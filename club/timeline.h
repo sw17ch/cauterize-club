@@ -2,6 +2,7 @@
 #define TIMELINE_H
 
 struct timeline;
+struct entry_iter;
 
 enum timeline_status {
   timeline_ok = 0,
@@ -43,5 +44,24 @@ struct entry_handle * timeline_new_entry(
 
 const struct entry_handle * timeline_last_entry(
     const struct timeline * const tl);
+
+
+struct entry_iter * timeline_iterator(
+    const struct timeline * const tl);
+
+void timeline_iterator_reset(
+    struct entry_iter * iter);
+
+void timeline_iterator_next(
+    struct entry_iter * iter);
+
+bool timeline_iterator_done(
+    struct entry_iter * iter);
+
+const struct entry_handle * timeline_iterator_entry(
+    const struct entry_iter * const iter);
+
+void timeline_iterator_free(
+    struct entry_iter * iter);
 
 #endif /* TIMELINE_H */

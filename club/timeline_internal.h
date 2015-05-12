@@ -30,4 +30,11 @@ struct timeline {
 
 typedef uint32_t file_len_hdr_t;
 
+struct entry_iter {
+  const struct timeline * tl;
+  const struct entry_handle * entry;
+  size_t pos;
+  const struct timeline_region * region;
+};
+
 #endif /* TIMELINE_INTERNAL_H */

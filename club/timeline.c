@@ -138,6 +138,56 @@ const struct entry_handle * timeline_last_entry(const T * const tl) {
   return NULL;
 }
 
+struct entry_iter * timeline_iterator(const struct timeline * const tl) {
+  struct entry_iter * iter = calloc(1, sizeof(*iter));
+  iter->tl = tl;
+
+  timeline_iterator_reset(iter);
+
+  return iter;
+}
+
+void timeline_iterator_reset(struct entry_iter * iter) {
+  iter->pos = 0;
+
+  if (iter->tl->regions->used > 0) {
+    iter->region = iter->tl->regions;
+    iter->entry = &iter->tl->regions->elems[0];
+  } else {
+    iter->region = NULL;
+    iter->entry = NULL;
+  }
+}
+
+void timeline_iterator_next(struct entry_iter * iter) {
+  iter->entry = NULL;
+  iter->pos += 1;
+
+  while (iter->region) {
+    if (iter->pos >= iter->region->used) {
+      iter->pos = 0;
+      iter->region = iter->region->next;
+    } else {
+      iter->entry = &iter->region->elems[iter->pos];
+      break;
+    }
+  }
+}
+
+bool timeline_iterator_done(struct entry_iter * iter) {
+  return (NULL == iter->entry);
+}
+
+
+const struct entry_handle * timeline_iterator_entry(const struct entry_iter * const iter) {
+  return iter->entry;
+}
+
+void timeline_iterator_free(struct entry_iter * iter) {
+  if (NULL != iter) {
+    free(iter);
+  }
+}
 
 static void timeline_init(T ** tl, const char * const path) {
   T * timeline = *tl = calloc(1, sizeof(*timeline));
