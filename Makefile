@@ -10,20 +10,21 @@ HFILES=$(CAUT_HFILES) \
 			 $(CLUB_DIR)/options.h \
 			 $(CLUB_DIR)/list.h \
 			 $(CLUB_DIR)/app.h \
-			 $(CLUB_DIR)/datafile.h \
 			 $(CLUB_DIR)/hashing.h \
-			 $(CLUB_DIR)/type_utils.h
+			 $(CLUB_DIR)/type_utils.h \
+			 $(CLUB_DIR)/timeline.h \
+			 $(CLUB_DIR)/timeline_internal.h
 CFILES=$(CAUT_CFILES) \
 			 main.c \
 			 $(CLUB_DIR)/options.c \
 			 $(CLUB_DIR)/list.c \
 			 $(CLUB_DIR)/app.c \
-			 $(CLUB_DIR)/datafile.c \
 			 $(CLUB_DIR)/hashing.c \
-			 $(CLUB_DIR)/type_utils.c
+			 $(CLUB_DIR)/type_utils.c \
+			 $(CLUB_DIR)/timeline.c
 
 CC=clang
-CARGS=-Wall -Wextra --std=c11 -pedantic -O0
+CARGS=-Wall -Wextra --std=c11 -pedantic -g -O0
 LIBS=-lgcrypt
 INCLUDE=-Ivendor/socket99 -I.
 

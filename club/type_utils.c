@@ -14,7 +14,7 @@ static void mk_name(struct name * n, char * name_str) {
 }
 
 void get_time( uint64_t * ns_dst) {
-  struct timeval tv = { 0 };
+  struct timeval tv;
 
   if (0 == gettimeofday(&tv, NULL)) {
     *ns_dst = (1000000000 * tv.tv_sec) + (1000 * tv.tv_usec);

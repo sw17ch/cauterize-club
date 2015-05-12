@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+#include <getopt.h>
 
 static void print_usage(char * cmd) {
     fprintf(stderr,
@@ -13,8 +14,11 @@ static void print_usage(char * cmd) {
         cmd);
 }
 
-enum option_parse_status option_parse(int argc, char * argv[], struct options * options) {
-  assert(options);
+enum option_parse_status option_parse(int argc, char * argv[], struct options ** opts) {
+  assert(opts);
+
+  *opts = calloc(1, sizeof(**opts));
+  struct options * options = *opts;
 
   memset(options, 0, sizeof(*options));
 

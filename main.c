@@ -1,18 +1,18 @@
 #include <stdint.h>
 
-#include <nanomsg/nn.h>
-#include <nanomsg/reqrep.h>
-
 #include "club/network.h"
 #include "club/options.h"
 #include "club/app.h"
 
 int main(int argc, char * argv[]) {
-  struct options options;
+  struct options * options;
 
   if (option_parse_ok == option_parse(argc, argv, &options)) {
-    return run_with_options(&options);
+    int r = run_with_options(options);
+    options_free(options);
+    return r;
   } else {
     return 1;
   }
 }
+
