@@ -2,13 +2,13 @@
 
 #include <sys/time.h>
 
-static void mk_name(struct name * n, char * name_str);
+static void mk_name(struct name * n, char const * const name_str);
 
-void mk_participant(struct participant * p, char * name_str) {
+void mk_participant(struct participant * p, const char * const name_str) {
   mk_name(&p->name, name_str);
 }
 
-static void mk_name(struct name * n, char * name_str) {
+static void mk_name(struct name * n, const char * const name_str) {
   strncpy((char *)n->elems, name_str, sizeof(n->elems)-1);
   n->_length = strnlen((char *)n->elems, sizeof(n->elems));
 }
@@ -23,7 +23,7 @@ void get_time( uint64_t * ns_dst) {
   }
 }
 
-void mk_entry_body_beginning(struct entry_body * body, char * name_str) {
+void mk_entry_body_beginning(struct entry_body * body, const char * const name_str) {
   body->_tag = entry_body_tag_beginning;
   mk_name(&body->beginning.name, name_str);
 }
