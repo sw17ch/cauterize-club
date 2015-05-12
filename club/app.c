@@ -7,8 +7,11 @@
 #include <assert.h>
 #include <inttypes.h>
 
-static int work(struct peer_set * peer_set, struct timeline * timeline);
-static size_t get_user_input(void * buffer, size_t max_len);
+static int app_list_entries(const struct timeline * const tl);
+
+static size_t get_user_input(
+    void * buffer,
+    size_t max_len);
 
 int run_with_options(struct options * options) {
   assert(options);
@@ -21,7 +24,18 @@ int run_with_options(struct options * options) {
     return tstat;
   }
 
-  int result = work(&options->peer_set, timeline);
+  int result;
+  switch (options->mode) {
+  case mode_daemon:
+  case mode_beginner:
+  case mode_joiner:
+  case mode_content:
+    result = 1;
+    break;
+  case mode_list:
+    result = app_list_entries(timeline);
+    break;
+  }
 
   if (timeline_ok != (tstat = timeline_deinit(timeline))) {
     fprintf(stderr, "Unable to uninitialize timeline. (%d)\n", tstat);
@@ -31,27 +45,24 @@ int run_with_options(struct options * options) {
   return 1000 + result;
 }
 
-static int work(struct peer_set * peer_set, struct timeline * timeline) {
-  uint8_t user_buffer[VECTOR_MAX_LEN_name] = { 0 };
-  char hstr[HASH_HEX_STR_LEN];
+static int app_list_entries(const struct timeline * const tl) {
+  char hashstr[HASH_HEX_STR_LEN] = { 0 };
+  struct entry_iter * iter = timeline_iterator(tl);
 
-  printf("Enter up to %u bytes of data.\nPress Ctrl+D when finished.\n\n", VECTOR_MAX_LEN_name);
-  size_t user_len = get_user_input(user_buffer, sizeof(user_buffer)-1);
+  while(!timeline_iterator_done(iter)) {
+    const struct entry_handle * e = timeline_iterator_entry(iter);
+    hash_to_str(e->hash, hashstr, sizeof(hashstr));
 
-  struct entry_handle * new_entry = timeline_new_entry(timeline);
+    printf("%s\n", hashstr);
+    memset(hashstr, '=', sizeof(hashstr) - 1);
+    printf("%s\n", hashstr);
 
-  mk_participant(&new_entry->entry.origin, "i'm a node");
-  get_time(&new_entry->entry.timestamp);
-  mk_entry_body_beginning(&new_entry->entry.body, (char *)user_buffer);
+    printf("%s", "\n");
 
-  hash_buffer(user_buffer, user_len, new_entry->hash);
-  hash_to_str(new_entry->hash, hstr, sizeof(hstr));
+    timeline_iterator_next(iter);
+  }
 
-  printf("================================================================================\n");
-  printf("User input: %s\n", user_buffer);
-  printf("User len: %lu\n", user_len);
-  printf("User hash: %s\n", hstr);
-  printf("Time: %" PRIu64 "\n", new_entry->entry.timestamp);
+  timeline_iterator_free(iter);
 
   return 0;
 }
