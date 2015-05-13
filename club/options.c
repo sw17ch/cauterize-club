@@ -55,7 +55,7 @@ enum option_parse_status option_parse(int argc, char * argv[], struct options **
     case 'm':
       switch (optarg[0]) {
       case 'd': options->mode = mode_daemon; break;
-      case 'b': options->mode = mode_beginner; break;
+      case 'b': options->mode = mode_beginning; break;
       case 'j': options->mode = mode_joiner; break;
       case 'c': options->mode = mode_content; break;
       case 'l': options->mode = mode_list; break;

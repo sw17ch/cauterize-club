@@ -5,7 +5,7 @@
 
 enum mode {
   mode_daemon,
-  mode_beginner,
+  mode_beginning,
   mode_joiner,
   mode_content,
   mode_list,

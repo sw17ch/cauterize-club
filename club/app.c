@@ -37,7 +37,7 @@ int run_with_options(struct options * options) {
   case mode_content:
     result = 1;
     break;
-  case mode_beginner:
+  case mode_beginning:
     {
       printf("Enter up to 512 bytes of data to name this beginning. Ctrl+D when finished.\n\n");
       char user_input[VECTOR_MAX_LEN_name] = { 0 };
