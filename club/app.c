@@ -7,7 +7,13 @@
 #include <assert.h>
 #include <inttypes.h>
 
-static int app_list_entries(const struct timeline * const tl);
+static int app_list_entries(
+    const struct timeline * const tl);
+
+static int app_add_beginning(
+    struct timeline * const tl,
+    const char * const participant_name,
+    const char * const beginning_name);
 
 static size_t get_user_input(
     void * buffer,
@@ -27,10 +33,17 @@ int run_with_options(struct options * options) {
   int result;
   switch (options->mode) {
   case mode_daemon:
-  case mode_beginner:
   case mode_joiner:
   case mode_content:
     result = 1;
+    break;
+  case mode_beginner:
+    {
+      printf("Enter up to 512 bytes of data to name this beginning. Ctrl+D when finished.\n\n");
+      char user_input[VECTOR_MAX_LEN_name] = { 0 };
+      get_user_input(user_input, sizeof(user_input) - 1);
+      result = app_add_beginning(timeline, options->name, user_input);
+    }
     break;
   case mode_list:
     result = app_list_entries(timeline);
@@ -63,6 +76,17 @@ static int app_list_entries(const struct timeline * const tl) {
   }
 
   timeline_iterator_free(iter);
+
+  return 0;
+}
+
+static int app_add_beginning(struct timeline * const tl, const char * const participant_name, const char * const beginning_name) {
+  struct entry_handle * h = timeline_new_entry(tl);
+
+  memset(h->hash, 0, sizeof(h->hash));
+  mk_participant(&h->entry.origin, participant_name);
+  get_time(&h->entry.timestamp);
+  mk_entry_body_beginning(&h->entry.body, beginning_name);
 
   return 0;
 }
