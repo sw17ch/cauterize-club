@@ -16,6 +16,7 @@ enum timeline_status {
   timeline_err_reading_entry_would_overflow,
   timeline_err_less_data_than_header_expects,
   timeline_err_unable_to_decode_entry,
+  timeline_err_entry_hash_mismatch,
 
   /* writing */
   timeline_err_path_not_writeable = 200,
@@ -23,6 +24,7 @@ enum timeline_status {
   timeline_err_unable_to_write_header,
   timeline_err_unable_to_encode_entry,
   timeline_err_unable_to_write_entry_header,
+  timeline_err_hash_mismatch_before_write,
   timeline_err_unable_to_write_entry_hash,
   timeline_err_unable_to_write_encoded_entry,
 };

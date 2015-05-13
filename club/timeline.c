@@ -59,15 +59,35 @@ S timeline_init_from_file(const char * const path, T ** const tl) {
         } else if (stat != timeline_ok) {
           return stat;
         } else {
+          hashtype_t hash = { 0 };
           struct caut_decode_iter di;
           struct entry_handle * eh = timeline_new_entry(timeline);
+          uint8_t * hash_start = &timeline->transcode_buffer[0];
+          uint8_t * data_start = &timeline->transcode_buffer[sizeof(eh->hash)];
+          size_t data_len = len_hdr - sizeof(eh->hash);
 
-          memcpy(eh->hash, timeline->transcode_buffer, sizeof(eh->hash));
+          hash_buffer(data_start, data_len, hash);
+
+          if (0 != memcmp(hash, hash_start, sizeof(eh->hash))) {
+            char exp[HASH_HEX_STR_LEN] = {0};
+            char act[HASH_HEX_STR_LEN] = {0};
+
+            hash_to_str(hash_start, exp, sizeof(exp));
+            hash_to_str(hash, act, sizeof(exp));
+
+            fprintf(stderr,
+                "Unexpected entry hash.\n"
+                "\tExpected: %s\n"
+                "\tActual:   %s\n",
+                exp, act);
+
+            return timeline_err_entry_hash_mismatch;
+          }
+
+          memcpy(eh->hash, hash_start, sizeof(eh->hash));
 
           caut_decode_iter_init(
-              &di,
-              &(timeline->transcode_buffer[sizeof(eh->hash)]),
-              len_hdr - sizeof(eh->hash));
+              &di, data_start, data_len);
 
           if (caut_status_ok != decode_entry(&di, &eh->entry)) {
             return timeline_err_unable_to_decode_entry;
@@ -360,6 +380,18 @@ static S write_entry(FILE * f, struct entry_handle * eh, uint8_t * enc_buffer, s
 
   if (1 != fwrite(&ehdr, sizeof(ehdr), 1, f)) {
     return timeline_err_unable_to_write_entry_header;
+  }
+
+  if (hash_is_null(eh->hash)) {
+    // no hash set, calculate one
+    hash_buffer(enc_buffer, enc_len, eh->hash);
+  } else {
+    // a hash is set. double check it.
+    hashtype_t check_hash = { 0 };
+    hash_buffer(enc_buffer, enc_len, check_hash);
+    if (0 != memcmp(eh->hash, check_hash, sizeof(hashtype_t))) {
+      return timeline_err_hash_mismatch_before_write;
+    }
   }
 
   if (1 != fwrite(eh->hash, sizeof(eh->hash), 1, f)) {
