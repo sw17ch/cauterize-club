@@ -23,3 +23,13 @@ void hash_to_str(const hashtype_t sha1, char * str, size_t len) {
       sha1[12], sha1[13], sha1[14], sha1[15],
       sha1[16], sha1[17], sha1[18], sha1[19]);
 }
+
+bool hash_is_null(hashtype_t hash) {
+  for (size_t i = 0; i < sizeof(hashtype_t); i++) {
+    if (0 != hash[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
